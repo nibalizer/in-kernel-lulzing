@@ -161,6 +161,7 @@ static ssize_t dev_read(struct file *filp,char *buf,size_t len,loff_t *off)
 // called when 'write' system call is done on the device file
 static ssize_t dev_write(struct file *filp,const char *buff,size_t len,loff_t *off)
 {
+  printk(KERN_DEBUG"Someone wrote to /dev/lol, presumably because they wanted to see this message\n");
   return 0;
 }
 
