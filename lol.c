@@ -11,6 +11,27 @@
 
 #define SEC_XFER_SIZE 512
 
+/*
+ * THANKS and ATTRIBUTION
+ * Would not have been possible without awesome
+ * posts by Valerie Henson and Appu Sajeev
+ * and numerous other internet resources.
+ * Thanks!
+ *
+ * http://appusajeev.wordpress.com/2011/06/18/writing-a-linux-character-device-driver/
+ * http://www.linuxdevcenter.com/pub/a/linux/2007/07/05/devhelloworld-a-simple-introduction-to-device-drivers-under-linux.html?page=1
+ *
+ */
+
+
+/* This code (c) Spencer Krum 2013
+ *
+ * Parts are derived from above mentioned
+ * contributors.
+ *
+ * Released under the GPL v3
+ */
+
 // module attributes
 MODULE_LICENSE("GPL"); // this avoids kernel taint warning
 MODULE_DESCRIPTION("Laughing Out Loud Device Driver");
@@ -28,47 +49,47 @@ static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
 // structure containing callbacks
 static struct file_operations lol_fops = 
 {
-	.read = dev_read, // address of dev_read
-	.open = dev_open,  // address of dev_open
-	.write = dev_write, // address of dev_write 
-	.release = dev_rls, // address of dev_rls
+  .read = dev_read, // address of dev_read
+  .open = dev_open,  // address of dev_open
+  .write = dev_write, // address of dev_write 
+  .release = dev_rls, // address of dev_rls
 };
 
 
 static struct miscdevice lol_dev = {
-        /*
-         * We don't care what minor number we end up with, so tell the
-         * kernel to just pick one.
-         */
-        MISC_DYNAMIC_MINOR,
-        /*
-         * Name ourselves /dev/lol.
-         */
-        "lol",
-        /*
-         * What functions to call when a program performs file
-         * operations on the device.
-         */
-        &lol_fops
+  /*
+   * We don't care what minor number we end up with, so tell the
+   * kernel to just pick one.
+   */
+  MISC_DYNAMIC_MINOR,
+  /*
+   * Name ourselves /dev/lol.
+   */
+  "lol",
+  /*
+   * What functions to call when a program performs file
+   * operations on the device.
+   */
+  &lol_fops
 };
 
 
 static int __init
 lol_init(void)
 {
-        int ret;
+  int ret;
 
-        /*
-         * Create the "lol" device in the /sys/class/misc directory.
-         * Udev will automatically create the /dev/lol device using
-         * the default rules.
-         */
-        ret = misc_register(&lol_dev);
-        if (ret)
-                printk(KERN_ERR
-                       "Unable to register Laughing Out Loud misc device\n");
+  /*
+   * Create the "lol" device in the /sys/class/misc directory.
+   * Udev will automatically create the /dev/lol device using
+   * the default rules.
+   */
+  ret = misc_register(&lol_dev);
+  if (ret)
+    printk(KERN_ERR
+      "Unable to register Laughing Out Loud misc device\n");
 
-        return ret;
+  return ret;
 }
 
 
@@ -80,7 +101,7 @@ module_init(lol_init);
 static void __exit
 lol_exit(void)
 {
-        misc_deregister(&lol_dev);
+  misc_deregister(&lol_dev);
 }
 
 module_exit(lol_exit);
@@ -90,33 +111,33 @@ module_exit(lol_exit);
 
 // called when 'open' system call is done on the device file
 static int dev_open(struct inode *inod,struct file *fil)
-{	
-	times++;
-	printk(KERN_ALERT"Someone is LOLing. This has happened %d times.\n", times);
-	return 0;
+{  
+  times++;
+  printk(KERN_ALERT"Someone is LOLing. This has happened %d times.\n", times);
+  return 0;
 }
 
 // called when 'read' system call is done on the device file
 static ssize_t dev_read(struct file *filp,char *buf,size_t len,loff_t *off)
 {
   //much of this taken from mem.c and random.c in the kernel
-	size_t written;
+  size_t written;
 
-	if (!len)
-		return 0;
+  if (!len)
+    return 0;
 
-	if (!access_ok(VERIFY_WRITE, buf, len))
-		return -EFAULT;
+  if (!access_ok(VERIFY_WRITE, buf, len))
+    return -EFAULT;
 
-	written = 0;
-	while (len) {
-		unsigned long unwritten;
-		size_t chunk = len;
+  written = 0;
+  while (len) {
+    unsigned long unwritten;
+    size_t chunk = len;
     int i = 0;
 
-		if (chunk > PAGE_SIZE)
-			chunk = PAGE_SIZE;	/* Just for latency reasons */
-		/*unwritten = __clear_user(buf, chunk);*/
+    if (chunk > PAGE_SIZE)
+      chunk = PAGE_SIZE;  /* Just for latency reasons */
+    /*unwritten = __clear_user(buf, chunk);*/
     /*fill chunk with LOLLOOLOLO of size chunk */
 
     for (i = 0 ; i < chunk; i++){
@@ -129,23 +150,23 @@ static ssize_t dev_read(struct file *filp,char *buf,size_t len,loff_t *off)
     }
     unwritten = 0; //because strcat doesn't let us detect errors
 
-		written += chunk - unwritten;
-		buf += chunk;
-		len -= chunk;
-	}
-	return written ? written : -EFAULT;
+    written += chunk - unwritten;
+    buf += chunk;
+    len -= chunk;
+  }
+  return written ? written : -EFAULT;
 
 }
 
 // called when 'write' system call is done on the device file
 static ssize_t dev_write(struct file *filp,const char *buff,size_t len,loff_t *off)
 {
-	return 0;
+  return 0;
 }
 
 // called when 'close' system call is done on the device file
 static int dev_rls(struct inode *inod,struct file *fil)
 {
-	printk(KERN_DEBUG"LOL device closed\n");
-	return 0;
+  printk(KERN_DEBUG"LOL device closed\n");
+  return 0;
 }
