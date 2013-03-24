@@ -2,6 +2,12 @@
 #include <linux/string.h>
 #include <linux/fs.h>
 #include <asm/uaccess.h>
+#include <linux/fs.h>
+#include <linux/init.h>
+#include <linux/miscdevice.h>
+#include <linux/module.h>
+
+#include <asm/uaccess.h>
 
 #define SEC_XFER_SIZE 512
 
@@ -22,7 +28,7 @@ static ssize_t dev_read(struct file *, char *, size_t, loff_t *);
 static ssize_t dev_write(struct file *, const char *, size_t, loff_t *);
 
 // structure containing callbacks
-static struct file_operations fops = 
+static struct file_operations lol_fops = 
 {
 	.read = dev_read, // address of dev_read
 	.open = dev_open,  // address of dev_open
@@ -31,23 +37,57 @@ static struct file_operations fops =
 };
 
 
-// called when module is loaded, similar to main()
-int init_module(void)
-{
-	int t = register_chrdev(89,"lol",&fops); //register driver with major:89
-	
-	if (t<0) printk(KERN_ALERT "Device registration failed..\n");
-	else printk(KERN_ALERT "Device registered...\n");
+static struct miscdevice lol_dev = {
+        /*
+         * We don't care what minor number we end up with, so tell the
+         * kernel to just pick one.
+         */
+        MISC_DYNAMIC_MINOR,
+        /*
+         * Name ourselves /dev/lol.
+         */
+        "lol",
+        /*
+         * What functions to call when a program performs file
+         * operations on the device.
+         */
+        &lol_fops
+};
 
-	return t;
+
+static int __init
+lol_init(void)
+{
+        int ret;
+
+        /*
+         * Create the "lol" device in the /sys/class/misc directory.
+         * Udev will automatically create the /dev/lol device using
+         * the default rules.
+         */
+        ret = misc_register(&lol_dev);
+        if (ret)
+                printk(KERN_ERR
+                       "Unable to register Laughing Out Loud misc device\n");
+
+        return ret;
 }
 
 
-// called when module is unloaded, similar to destructor in OOP
-void cleanup_module(void)
+
+module_init(lol_init);
+
+
+
+static void __exit
+lol_exit(void)
 {
-	unregister_chrdev(89,"lol");
+        misc_deregister(&lol_dev);
 }
+
+module_exit(lol_exit);
+
+
 
 
 // called when 'open' system call is done on the device file
