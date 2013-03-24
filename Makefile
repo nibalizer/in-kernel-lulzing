@@ -5,6 +5,3 @@ all:
 
 clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
-
-test:test.c
-	cc -o test test.c
