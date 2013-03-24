@@ -17,8 +17,6 @@ MODULE_DESCRIPTION("Laughing Out Loud Device Driver");
 MODULE_AUTHOR("Spencer Krum");
 
 
-static char msg[100]={0};
-static short readPos=0;
 static int times = 0;
 
 // protoypes,else the structure initialization that follows fail
@@ -94,7 +92,7 @@ module_exit(lol_exit);
 static int dev_open(struct inode *inod,struct file *fil)
 {	
 	times++;
-	printk(KERN_ALERT"Device opened %d times\n",times);
+	printk(KERN_ALERT"Someone is LOLing. This has happened %d times.\n", times);
 	return 0;
 }
 
@@ -142,21 +140,12 @@ static ssize_t dev_read(struct file *filp,char *buf,size_t len,loff_t *off)
 // called when 'write' system call is done on the device file
 static ssize_t dev_write(struct file *filp,const char *buff,size_t len,loff_t *off)
 {
-	short ind = len-1;
-	short count=0;
-	memset(msg,0,100);
-	readPos=0;
-	while(len>0)
-	{
-		msg[count++] = buff[ind--]; //copy the given string to the driver but in reverse
-		len--;
-	}
-	return count;
+	return 0;
 }
 
 // called when 'close' system call is done on the device file
 static int dev_rls(struct inode *inod,struct file *fil)
 {
-	printk(KERN_ALERT"Device closed\n");
+	printk(KERN_DEBUG"LOL device closed\n");
 	return 0;
 }
