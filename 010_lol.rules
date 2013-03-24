@@ -1,0 +1,1 @@
+KERNEL=="lol", SYMLINK+="rofl", MODE="0444"
