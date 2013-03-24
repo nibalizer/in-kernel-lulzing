@@ -1,1 +1,1 @@
-KERNEL=="lol", SYMLINK+="rofl", MODE="0444"
+KERNEL=="lol", SYMLINK+="rofl", SYMLINK+='lulz', MODE="0444"
